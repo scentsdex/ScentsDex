@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>ScentsDex | Discover Your Next Fragrance</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f5;
+      color: #171717;
+    }
+
+    header {
+      background: #111;
+      color: white;
+      padding: 22px 8%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 28px;
+      font-size: 15px;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 110px 20px 90px;
+      background: linear-gradient(135deg, #111, #343434);
+      color: white;
+    }
+
+    .hero h1 {
+      font-size: 54px;
+      margin-bottom: 18px;
+    }
+
+    .hero p {
+      font-size: 19px;
+      color: #d8d8d8;
+      margin-bottom: 35px;
+    }
+
+    .search-box {
+      width: 90%;
+      max-width: 650px;
+      padding: 18px 22px;
+      border: none;
+      border-radius: 10px;
+      font-size: 17px;
+      outline: none;
+    }
+
+    .features {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 70px 25px;
+    }
+
+    .features h2 {
+      font-size: 30px;
+      margin-bottom: 35px;
+      text-align: center;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 22px;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 14px;
+      border: 1px solid #e5e5e5;
+    }
+
+    .card h3 {
+      margin-bottom: 12px;
+    }
+
+    .card p {
+      color: #666;
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      padding: 35px;
+      color: #777;
+      border-top: 1px solid #ddd;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">ScentsDex</div>
+
+  <nav>
+    <a href="#">Discover</a>
+    <a href="#">Brands</a>
+    <a href="#">Barcode Search</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>Discover Your Next Fragrance</h1>
+
+  <p>
+    Explore perfumes, fragrance profiles, sizes, barcodes and more.
+  </p>
+
+  <input
+    class="search-box"
+    type="text"
+    placeholder="Search perfume, brand or barcode..."
+  >
+</section>
+
+<section class="features">
+
+  <h2>Explore ScentsDex</h2>
+
+  <div class="cards">
+
+    <div class="card">
+      <h3>🔍 Fragrance Search</h3>
+      <p>
+        Search fragrances by name, brand, concentration and fragrance family.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>🏷️ Barcode Database</h3>
+      <p>
+        Find perfume information using UPC and barcode numbers.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>🌿 Fragrance Profiles</h3>
+      <p>
+        Explore fragrance families, performance, concentration and more.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>📚 Brand Directory</h3>
+      <p>
+        Browse perfume houses and discover fragrances from each brand.
+      </p>
+    </div>
+
+  </div>
+
+</section>
+
+<footer>
+  © 2026 ScentsDex · Fragrance Information & Discovery
+</footer>
+
+</body>
+</html>
