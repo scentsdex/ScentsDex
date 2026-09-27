@@ -131,11 +131,13 @@
     Explore perfumes, fragrance profiles, sizes, barcodes and more.
   </p>
 
-  <input
-    class="search-box"
-    type="text"
-    placeholder="Search perfume, brand or barcode..."
-  >
+ <input
+  id="searchInput"
+  class="search-box"
+  type="text"
+  placeholder="Search perfume, brand or barcode..."
+>
+<div id="searchResults"></div>
 </section>
 
 <section class="features">
@@ -180,5 +182,54 @@
   © 2026 ScentsDex · Fragrance Information & Discovery
 </footer>
 
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  const SUPABASE_URL = "https://nvsjumytjbdmjpcbzvg.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_oh16IWFj00euFijR72BuRQ_aMACLbZu";
+
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const searchInput = document.getElementById("searchInput");
+  const searchResults = document.getElementById("searchResults");
+
+  searchInput.addEventListener("input", async function () {
+    const searchTerm = searchInput.value.trim();
+
+    if (searchTerm.length < 2) {
+      searchResults.innerHTML = "";
+      return;
+    }
+
+    searchResults.innerHTML = "Searching...";
+
+    const { data, error } = await db
+      .from("perfumes")
+      .select("*")
+      .ilike("name", `%${searchTerm}%`)
+      .limit(10);
+
+    if (error) {
+      console.error(error);
+      searchResults.innerHTML = "Unable to search right now.";
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      searchResults.innerHTML = "No fragrances found.";
+      return;
+    }
+
+    searchResults.innerHTML = data
+      .map((perfume) => `
+        <div class="search-result">
+          <strong>${perfume.name ?? "Unnamed fragrance"}</strong>
+          <div>${perfume.brand ?? ""}</div>
+        </div>
+      `)
+      .join("");
+  });
+</script>
 </body>
 </html>
