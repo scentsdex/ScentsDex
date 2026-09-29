@@ -3,233 +3,178 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>ScentsDex | Discover Your Next Fragrance</title>
-
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background: #f7f7f5;
-      color: #171717;
-    }
-
-    header {
-      background: #111;
-      color: white;
-      padding: 22px 8%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    nav a {
-      color: white;
-      text-decoration: none;
-      margin-left: 28px;
-      font-size: 15px;
-    }
-
-    .hero {
-      text-align: center;
-      padding: 110px 20px 90px;
-      background: linear-gradient(135deg, #111, #343434);
-      color: white;
-    }
-
-    .hero h1 {
-      font-size: 54px;
-      margin-bottom: 18px;
-    }
-
-    .hero p {
-      font-size: 19px;
-      color: #d8d8d8;
-      margin-bottom: 35px;
-    }
-
-    .search-box {
-      width: 90%;
-      max-width: 650px;
-      padding: 18px 22px;
-      border: none;
-      border-radius: 10px;
-      font-size: 17px;
-      outline: none;
-    }
-
-    .features {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 70px 25px;
-    }
-
-    .features h2 {
-      font-size: 30px;
-      margin-bottom: 35px;
-      text-align: center;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 22px;
-    }
-
-    .card {
-      background: white;
-      padding: 30px;
-      border-radius: 14px;
-      border: 1px solid #e5e5e5;
-    }
-
-    .card h3 {
-      margin-bottom: 12px;
-    }
-
-    .card p {
-      color: #666;
-      line-height: 1.6;
-    }
-
-    footer {
-      text-align: center;
-      padding: 35px;
-      color: #777;
-      border-top: 1px solid #ddd;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f7f7f5; color: #171717; }
+    header { background: #111; color: white; padding: 22px 8%; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+    .logo { font-size: 28px; font-weight: 700; letter-spacing: 1px; }
+    nav { display: flex; flex-wrap: wrap; gap: 16px 28px; }
+    nav a { color: white; text-decoration: none; font-size: 15px; }
+    .hero { text-align: center; padding: 110px 20px 90px; background: linear-gradient(135deg, #111, #343434); color: white; }
+    .hero h1 { font-size: clamp(32px, 6vw, 54px); margin-bottom: 18px; }
+    .hero p { font-size: 19px; color: #d8d8d8; margin-bottom: 35px; }
+    .search-box { width: 100%; max-width: 650px; padding: 18px 22px; border: none; border-radius: 10px; font-size: 17px; }
+    :focus-visible { outline: 3px solid #b69248; outline-offset: 4px; }
+    #searchResults { max-width: 650px; margin: 18px auto 0; text-align: left; }
+    .search-result { display: block; background: white; color: #171717; padding: 18px 22px; border-radius: 10px; margin-top: 10px; text-decoration: none; border: 1px solid #ddd; }
+    .search-result:hover { background: #f4efe5; }
+    .search-result span { display: block; margin-top: 6px; color: #666; font-size: 14px; }
+    .features, .profile { max-width: 1100px; margin: 0 auto; padding: 70px 25px; }
+    .features h2 { font-size: 30px; margin-bottom: 35px; text-align: center; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 22px; }
+    .card { background: white; padding: 30px; border-radius: 14px; border: 1px solid #e5e5e5; }
+    .card h3 { margin-bottom: 12px; }
+    .card p { color: #666; line-height: 1.6; }
+    footer { text-align: center; padding: 35px; color: #777; border-top: 1px solid #ddd; }
+    [hidden] { display: none !important; }
+    .back { display: inline-block; color: #333; margin-bottom: 30px; text-underline-offset: 4px; }
+    .profile-layout { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr); gap: 36px; align-items: start; }
+    .bottle { min-height: 280px; aspect-ratio: 1; background: #eae7df; border-radius: 16px; display: grid; place-items: center; padding: 28px; text-align: center; color: #686257; }
+    .bottle img { width: 100%; height: 100%; max-height: 400px; object-fit: contain; }
+    .eyebrow { color: #686257; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+    .profile h1 { font-size: clamp(32px, 6vw, 48px); overflow-wrap: anywhere; margin-bottom: 12px; }
+    .subtitle, .description { line-height: 1.7; color: #555; margin-bottom: 24px; }
+    .facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; padding: 24px 0; border-top: 1px solid #ddd; }
+    dt { color: #666; font-size: 13px; margin-bottom: 7px; }
+    dd { font-size: 16px; overflow-wrap: anywhere; }
+    .variants { margin-top: 40px; }
+    .variants h2 { font-size: 24px; margin-bottom: 18px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    caption { text-align: left; color: #666; padding-bottom: 12px; font-size: 14px; }
+    th, td { text-align: left; padding: 16px; border-bottom: 1px solid #e5e5e5; }
+    th { font-size: 13px; background: #eeeae2; }
+    .notice { padding: 18px; background: #eeeae2; border-radius: 10px; line-height: 1.6; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+    @media (max-width: 640px) { header { flex-direction: column; align-items: flex-start; padding: 22px; } .hero { padding: 65px 20px; } .profile { padding: 36px 20px; } .profile-layout { grid-template-columns: 1fr; gap: 28px; } .bottle { min-height: 200px; aspect-ratio: auto; } th, td { padding: 12px; } }
   </style>
 </head>
-
 <body>
-
 <header>
   <div class="logo">ScentsDex</div>
-
-  <nav>
-    <a href="#">Discover</a>
-    <a href="#">Brands</a>
-    <a href="#">Barcode Search</a>
-  </nav>
+  <nav aria-label="Main navigation"><a href="#">Discover</a><a href="#">Brands</a><a href="#">Barcode Search</a></nav>
 </header>
-
-<section class="hero">
-  <h1>Discover Your Next Fragrance</h1>
-
-  <p>
-    Explore perfumes, fragrance profiles, sizes, barcodes and more.
-  </p>
-
- <input
-  id="searchInput"
-  class="search-box"
-  type="text"
-  placeholder="Search perfume, brand or barcode..."
->
-<div id="searchResults"></div>
-</section>
-
-<section class="features">
-
-  <h2>Explore ScentsDex</h2>
-
-  <div class="cards">
-
-    <div class="card">
-      <h3>🔍 Fragrance Search</h3>
-      <p>
-        Search fragrances by name, brand, concentration and fragrance family.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>🏷️ Barcode Database</h3>
-      <p>
-        Find perfume information using UPC and barcode numbers.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>🌿 Fragrance Profiles</h3>
-      <p>
-        Explore fragrance families, performance, concentration and more.
-      </p>
-    </div>
-
-    <div class="card">
-      <h3>📚 Brand Directory</h3>
-      <p>
-        Browse perfume houses and discover fragrances from each brand.
-      </p>
-    </div>
-
+<main>
+  <div id="home">
+    <section class="hero">
+      <h1>Discover Your Next Fragrance</h1>
+      <p>Explore perfumes, fragrance profiles, sizes, barcodes and more.</p>
+      <label class="sr-only" for="searchInput">Search perfumes by name</label>
+      <input id="searchInput" class="search-box" type="search" placeholder="Search perfumes by name..." autocomplete="off" aria-describedby="searchStatus">
+      <div id="searchResults"><p id="searchStatus" role="status" aria-live="polite"></p><div id="resultList"></div></div>
+    </section>
+    <section class="features">
+      <h2>Explore ScentsDex</h2>
+      <div class="cards">
+        <div class="card"><h3>🔍 Fragrance Search</h3><p>Search perfumes by name and open their fragrance profiles.</p></div>
+        <div class="card"><h3>🏷️ Barcode Database</h3><p>View available sizes and recorded UPC numbers in each fragrance profile.</p></div>
+        <div class="card"><h3>🌿 Fragrance Profiles</h3><p>Explore fragrance families, performance, concentration and more.</p></div>
+        <div class="card"><h3>📚 Brand Directory</h3><p>Browse perfume houses and discover fragrances from each brand.</p></div>
+      </div>
+    </section>
   </div>
-
-</section>
-
-<footer>
-  © 2026 ScentsDex · Fragrance Information & Discovery
-</footer>
-
-
+  <section id="profile" class="profile" hidden aria-label="Fragrance profile">
+    <a class="back" href="#">← Back to search</a>
+    <div id="profileContent" aria-live="polite"></div>
+  </section>
+</main>
+<footer>© 2026 ScentsDex · Fragrance Information &amp; Discovery</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
-  const SUPABASE_URL = "https://nvsijumytjbdmjpqbzvg.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_oh16IWFj00euFijR72BuRQ_aMACLbZu";
-
-  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  const searchInput = document.getElementById("searchInput");
-  const searchResults = document.getElementById("searchResults");
-
-  searchInput.addEventListener("input", async function () {
-    const searchTerm = searchInput.value.trim();
-
-    if (searchTerm.length < 2) {
-      searchResults.innerHTML = "";
-      return;
-    }
-
-    searchResults.innerHTML = "Searching...";
-
-    const { data, error } = await db
-      .from("perfumes")
-      .select("*")
-      .ilike("name", `%${searchTerm}%`)
-      .limit(10);
-
-    if (error) {
-      console.error(error);
-      searchResults.innerHTML = "Unable to search right now.";
-      return;
-    }
-
-    if (!data || data.length === 0) {
-      searchResults.innerHTML = "No fragrances found.";
-      return;
-    }
-
-    searchResults.innerHTML = data
-      .map((perfume) => `
-        <div class="search-result">
-          <strong>${perfume.name ?? "Unnamed fragrance"}</strong>
-          <div>${perfume.brand ?? ""}</div>
-        </div>
-      `)
-      .join("");
+  const SUPABASE_URL = 'https://nvsijumytjbdmjpqbzvg.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_oh16IWFj00euFijR72BuRQ_aMACLbZu';
+  const db = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  const searchInput = document.getElementById('searchInput');
+  const resultList = document.getElementById('resultList');
+  const searchStatus = document.getElementById('searchStatus');
+  const home = document.getElementById('home');
+  const profile = document.getElementById('profile');
+  const profileContent = document.getElementById('profileContent');
+  let searchVersion = 0, profileVersion = 0, searchTimer;
+  const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[char]));
+  const display = value => value === null || value === undefined || value === '' ? 'Not recorded' : String(value);
+  const score = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)) && Number(value) >= 0 && Number(value) <= 10 ? `${value}/10` : 'Not recorded';
+  function safeImage(value) {
+    if (!value) return '';
+    try { const url = new URL(value); return url.protocol === 'https:' ? url.href : ''; } catch { return ''; }
+  }
+  async function brandNames(ids) {
+    const unique = [...new Set(ids.filter(id => id !== null && id !== undefined))];
+    if (!unique.length) return new Map();
+    const { data, error } = await db.from('brands').select('id,name').in('id', unique);
+    if (error) return new Map();
+    return new Map((data || []).map(brand => [String(brand.id), brand.name]));
+  }
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    const version = ++searchVersion;
+    const term = searchInput.value.trim();
+    resultList.replaceChildren();
+    searchStatus.textContent = term.length < 2 ? '' : 'Searching…';
+    if (term.length < 2) return;
+    searchTimer = setTimeout(() => search(term, version), 250);
   });
+  async function search(term, version) {
+    try {
+      if (!db) throw new Error('Search service unavailable');
+      const literal = term.replace(/[\\%_]/g, char => '\\' + char);
+      const { data, error } = await db.from('perfumes').select('id,name,brand_id,concentration').ilike('name', `%${literal}%`).order('name').limit(10);
+      if (error) throw error;
+      const brands = await brandNames((data || []).map(item => item.brand_id));
+      if (version !== searchVersion) return;
+      searchStatus.textContent = data && data.length ? `${data.length} fragrance${data.length === 1 ? '' : 's'} found. Select a fragrance to view its profile.` : 'No fragrances found.';
+      resultList.innerHTML = (data || []).map(item => `<a class="search-result" href="#perfume/${encodeURIComponent(item.id)}"><strong>${escapeHTML(item.name || 'Unnamed fragrance')}</strong><span>${escapeHTML(brands.get(String(item.brand_id)) || 'Brand not recorded')}${item.concentration ? ' · ' + escapeHTML(item.concentration) : ''}</span></a>`).join('');
+    } catch (error) {
+      if (version !== searchVersion) return;
+      searchStatus.textContent = 'Unable to search right now. Please try again.';
+    }
+  }
+  function fact(label, value) { return `<div><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd></div>`; }
+  function variantSize(variant) {
+    return [variant.size_ml == null ? '' : `${variant.size_ml} ml`, variant.size_oz == null ? '' : `${variant.size_oz} fl oz`].filter(Boolean).join(' / ') || 'Not recorded';
+  }
+  async function showProfile(id, version) {
+    profileContent.innerHTML = '<p class="notice" role="status">Loading fragrance…</p>';
+    try {
+      if (!db) throw new Error('Profile service unavailable');
+      const { data: perfume, error } = await db.from('perfumes').select('*').eq('id', id).maybeSingle();
+      if (version !== profileVersion) return;
+      if (error) throw error;
+      if (!perfume) { profileContent.innerHTML = '<h1 tabindex="-1">Fragrance not found</h1><p class="notice">This fragrance is no longer available. Return to search to find another.</p>'; profileContent.querySelector('h1').focus(); return; }
+      const [brands, variantsResult] = await Promise.all([
+        brandNames([perfume.brand_id]).catch(() => new Map()),
+        db.from('variants').select('id,size_ml,size_oz,upc,sku,country').eq('perfume_id', perfume.id).order('size_ml').then(result => result, error => ({error}))
+      ]);
+      if (version !== profileVersion) return;
+      const brand = brands.get(String(perfume.brand_id)) || 'Brand not recorded';
+      const image = safeImage(perfume.image_url);
+      const variants = variantsResult.data || [];
+      const variantMarkup = variantsResult.error ? '<p class="notice">Sizes and barcodes could not be loaded. Please refresh to try again.</p>' : variants.length ? `<div class="table-wrap"><table><caption>Missing details are shown as “Not recorded”.</caption><thead><tr><th scope="col">Size</th><th scope="col">UPC / barcode</th><th scope="col">SKU</th><th scope="col">Country</th></tr></thead><tbody>${variants.map(variant => `<tr><td>${escapeHTML(variantSize(variant))}</td><td>${escapeHTML(display(variant.upc))}</td><td>${escapeHTML(display(variant.sku))}</td><td>${escapeHTML(display(variant.country))}</td></tr>`).join('')}</tbody></table></div>` : '<p class="notice">No sizes or barcodes have been added for this fragrance yet.</p>';
+      profileContent.innerHTML = `<div class="profile-layout"><div class="bottle">${image ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(perfume.name || 'Fragrance')}" referrerpolicy="no-referrer">` : '<span>Product image coming soon</span>'}</div><div><p class="eyebrow">${escapeHTML(brand)}</p><h1 tabindex="-1">${escapeHTML(perfume.name || 'Unnamed fragrance')}</h1><p class="subtitle">${escapeHTML(display(perfume.concentration))}</p><p class="description">${escapeHTML(perfume.description || 'A description has not been added yet.')}</p><dl class="facts">${fact('Gender', display(perfume.gender))}${fact('Release year', display(perfume.release_year))}${fact('Fragrance family', display(perfume.fragrance_family))}${fact('Concentration', display(perfume.concentration))}${fact('Longevity', score(perfume.longevity))}${fact('Projection', score(perfume.projection))}</dl></div></div><section class="variants"><h2>Available sizes &amp; barcodes</h2>${variantMarkup}</section>`;
+      const img = profileContent.querySelector('img');
+      if (img) img.addEventListener('error', () => { img.parentElement.textContent = 'Product image unavailable'; });
+      document.title = `${perfume.name || 'Fragrance'} · ${brand} | ScentsDex`;
+      profileContent.querySelector('h1').focus({preventScroll: true});
+    } catch (error) {
+      if (version !== profileVersion) return;
+      profileContent.innerHTML = '<h1 tabindex="-1">Unable to load this fragrance</h1><p class="notice">Please refresh to try again, or return to search.</p>';
+      profileContent.querySelector('h1').focus();
+    }
+  }
+  function route() {
+    const version = ++profileVersion;
+    const match = location.hash.match(/^#perfume\/(\d+)$/);
+    const wantsProfile = location.hash.startsWith('#perfume/');
+    home.hidden = wantsProfile;
+    profile.hidden = !wantsProfile;
+    document.title = 'ScentsDex | Discover Your Next Fragrance';
+    if (match) { window.scrollTo(0, 0); showProfile(match[1], version); }
+    else if (wantsProfile) profileContent.innerHTML = '<h1>Fragrance not found</h1><p class="notice">Return to search to find a fragrance.</p>';
+    else if (version > 1) searchInput.focus();
+  }
+  window.addEventListener('hashchange', route);
+  route();
 </script>
 </body>
 </html>
