@@ -349,7 +349,8 @@
       </div>
 
       <div class="admin-user">
-        ScentsDex Admin
+    <span>ScentsDex Admin</span>
+    <button type="button" id="logoutButton">Logout</button>
       </div>
 
     </div>
@@ -798,6 +799,18 @@ publishButton.addEventListener('click', async () => {
 
     }
 
+});
+const logoutButton = document.getElementById('logoutButton');
+
+logoutButton.addEventListener('click', async () => {
+    const { error } = await supabaseClient.auth.signOut();
+
+    if (error) {
+        alert('Could not log out: ' + error.message);
+        return;
+    }
+
+    showLogin();
 });
 checkSession();
 </script>
