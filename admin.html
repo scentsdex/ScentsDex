@@ -555,7 +555,7 @@
             Save Draft
           </button>
 
-          <button type="button" class="btn btn-primary">
+          <button type="button" class="btn btn-primary" id="publishButton">
             Publish Perfume
           </button>
 
@@ -636,7 +636,170 @@
     }
   });
 
-  checkSession();
+
+// ================================
+// PUBLISH PERFUME TO SUPABASE
+// ================================
+
+const publishButton = document.getElementById('publishButton');
+
+publishButton.addEventListener('click', async () => {
+
+    const brand = document.getElementById('brand').value.trim();
+    const name = document.getElementById('name').value.trim();
+    const gender = document.getElementById('gender').value;
+    const concentration = document.getElementById('concentration').value;
+    const launchYear = document.getElementById('launchYear').value;
+    const family = document.getElementById('family').value.trim();
+    const size = document.getElementById('size').value.trim();
+    const barcode = document.getElementById('barcode').value.trim();
+    const imageUrl = document.getElementById('imageUrl').value.trim();
+    const notes = document.getElementById('notes').value.trim();
+    const longevity = document.getElementById('longevity').value;
+    const projection = document.getElementById('projection').value;
+    const season = document.getElementById('season').value.trim();
+    const occasion = document.getElementById('occasion').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const status = document.getElementById('status').value;
+
+    if (!brand || !name) {
+        alert('Please enter Brand and Perfume Name.');
+        return;
+    }
+
+    publishButton.disabled = true;
+    publishButton.textContent = 'Publishing...';
+
+    try {
+
+        // 1. FIND OR CREATE BRAND
+        const brandSlug = brand
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+
+        let { data: existingBrand, error: brandSearchError } =
+            await supabaseClient
+                .from('brands')
+                .select('id')
+                .ilike('name', brand)
+                .maybeSingle();
+
+        if (brandSearchError) throw brandSearchError;
+
+        let brandId;
+
+        if (existingBrand) {
+            brandId = existingBrand.id;
+        } else {
+
+            const { data: newBrand, error: brandInsertError } =
+                await supabaseClient
+                    .from('brands')
+                    .insert({
+                        name: brand,
+                        slug: brandSlug
+                    })
+                    .select('id')
+                    .single();
+
+            if (brandInsertError) throw brandInsertError;
+
+            brandId = newBrand.id;
+        }
+
+        // 2. CONVERT LONGEVITY TO NUMBER
+        const longevityScores = {
+            'Light': 3,
+            'Moderate': 5,
+            'Long Lasting': 7,
+            'Very Long Lasting': 9
+        };
+
+        // 3. CONVERT PROJECTION TO NUMBER
+        const projectionScores = {
+            'Soft': 3,
+            'Moderate': 5,
+            'Strong': 7,
+            'Very Strong': 9
+        };
+
+        const perfumeSlug = name
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+
+        // 4. CREATE PERFUME
+        const { data: newPerfume, error: perfumeError } =
+            await supabaseClient
+                .from('perfumes')
+                .insert({
+                    brand_id: brandId,
+                    name: name,
+                    slug: perfumeSlug,
+                    gender: gender,
+                    concentration: concentration,
+                    release_year: launchYear ? Number(launchYear) : null,
+                    fragrance_family: family || null,
+                    description: description || null,
+                    image_url: imageUrl || null,
+                    longevity: longevityScores[longevity] || null,
+                    projection: projectionScores[projection] || null,
+                    status: status
+                })
+                .select('id')
+                .single();
+
+        if (perfumeError) throw perfumeError;
+
+        // 5. READ SIZE
+        let sizeMl = null;
+        let sizeOz = null;
+
+        const mlMatch = size.match(/([\d.]+)\s*ml/i);
+        const ozMatch = size.match(/([\d.]+)\s*(?:fl\s*)?oz/i);
+
+        if (mlMatch) sizeMl = Number(mlMatch[1]);
+        if (ozMatch) sizeOz = Number(ozMatch[1]);
+
+        // 6. CREATE VARIANT
+        const { error: variantError } =
+            await supabaseClient
+                .from('variants')
+                .insert({
+                    perfume_id: newPerfume.id,
+                    size_ml: sizeMl,
+                    size_oz: sizeOz,
+                    upc: barcode || null,
+                    image_url: imageUrl || null
+                });
+
+        if (variantError) throw variantError;
+
+        alert('Perfume published successfully!');
+
+        document.getElementById('perfumeForm').reset();
+
+    } catch (error) {
+
+        console.error('Publish error:', error);
+
+        alert(
+            'Could not publish perfume.\n\n' +
+            (error.message || 'Unknown error')
+        );
+
+    } finally {
+
+        publishButton.disabled = false;
+        publishButton.textContent = 'Publish Perfume';
+
+    }
+
+});
+checkSession();
 </script>
 </body>
 </html>
