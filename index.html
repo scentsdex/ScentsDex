@@ -144,7 +144,7 @@
       if (!perfume) { profileContent.innerHTML = '<h1 tabindex="-1">Fragrance not found</h1><p class="notice">This fragrance is no longer available. Return to search to find another.</p>'; profileContent.querySelector('h1').focus(); return; }
       const [brands, variantsResult] = await Promise.all([
         brandNames([perfume.brand_id]).catch(() => new Map()),
-        db.from('variants')..select('id,size_ml,size_oz,upc,sku,country,image_url').eq('perfume_id', perfume.id).order('size_ml').then(result => result, error => ({error}))
+        db.from('variants').select('id,size_ml,size_oz,upc,sku,country,image_url').eq('perfume_id', perfume.id).order('size_ml').then(result => result, error => ({error}))
       ]);
       if (version !== profileVersion) return;
       const brand = brands.get(String(perfume.brand_id)) || 'Brand not recorded';
