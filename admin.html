@@ -368,7 +368,29 @@
 
       </div>
 
+<div class="form-card" style="margin-bottom:24px;">
+    <div class="section-title">
+        Edit Existing Perfume
+    </div>
 
+    <div class="form-grid">
+        <div class="form-group full">
+            <label>Search Existing Perfume</label>
+            <input
+                type="text"
+                id="editPerfumeSearch"
+                placeholder="Search by perfume name..."
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="form-group full">
+            <select id="editPerfumeSelect" style="display:none;">
+                <option value="">Select a perfume</option>
+            </select>
+        </div>
+    </div>
+</div>
       
 
 
@@ -638,7 +660,166 @@
     }
   });
 
+// ==============================
+// SEARCH EXISTING PERFUMES
+// ==============================
 
+const editPerfumeSearch = document.getElementById('editPerfumeSearch');
+const editPerfumeSelect = document.getElementById('editPerfumeSelect');
+
+let editSearchTimer;
+
+editPerfumeSearch.addEventListener('input', () => {
+    clearTimeout(editSearchTimer);
+
+    editSearchTimer = setTimeout(async () => {
+        const searchTerm = editPerfumeSearch.value.trim();
+
+        if (searchTerm.length < 2) {
+            editPerfumeSelect.style.display = 'none';
+            editPerfumeSelect.innerHTML =
+                '<option value="">Select a perfume</option>';
+            return;
+        }
+
+        const { data, error } = await supabaseClient
+            .from('perfumes')
+            .select('id,name,brand_id')
+            .ilike('name', `%${searchTerm}%`)
+            .order('name')
+            .limit(20);
+
+        if (error) {
+            console.error('Edit perfume search error:', error);
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            editPerfumeSelect.innerHTML =
+                '<option value="">No perfumes found</option>';
+            editPerfumeSelect.style.display = 'block';
+            return;
+        }
+
+        const brandIds = [...new Set(data.map(item => item.brand_id))];
+
+        const { data: brands } = await supabaseClient
+            .from('brands')
+            .select('id,name')
+            .in('id', brandIds);
+
+        const brandMap = new Map(
+            (brands || []).map(brand => [String(brand.id), brand.name])
+        );
+
+        editPerfumeSelect.innerHTML =
+            '<option value="">Select a perfume to edit</option>' +
+            data.map(perfume => {
+                const brandName =
+                    brandMap.get(String(perfume.brand_id)) || 'Unknown Brand';
+
+                return `<option value="${perfume.id}">
+                    ${brandName} — ${perfume.name}
+                </option>`;
+            }).join('');
+
+        editPerfumeSelect.style.display = 'block';
+    }, 300);
+});
+// ==============================
+// LOAD EXISTING PERFUME FOR EDITING
+// ==============================
+
+let editingPerfumeId = null;
+let editingVariantId = null;
+let existingImageUrl = null;
+
+editPerfumeSelect.addEventListener('change', async () => {
+    const perfumeId = editPerfumeSelect.value;
+
+    if (!perfumeId) return;
+
+    const { data: perfume, error: perfumeError } = await supabaseClient
+        .from('perfumes')
+        .select('*, brands(name)')
+        .eq('id', perfumeId)
+        .single();
+
+    if (perfumeError) {
+        console.error('Could not load perfume:', perfumeError);
+        alert('Could not load perfume.');
+        return;
+    }
+
+    const { data: variants, error: variantError } = await supabaseClient
+        .from('variants')
+        .select('*')
+        .eq('perfume_id', perfumeId)
+        .order('size_ml');
+
+    if (variantError) {
+        console.error('Could not load variant:', variantError);
+        alert('Could not load perfume size information.');
+        return;
+    }
+
+    const variant = variants?.[0] || null;
+
+    editingPerfumeId = perfume.id;
+    editingVariantId = variant?.id || null;
+    existingImageUrl = perfume.image_url || variant?.image_url || null;
+
+    document.getElementById('brand').value =
+        perfume.brands?.name || '';
+
+    document.getElementById('name').value =
+        perfume.name || '';
+
+    document.getElementById('gender').value =
+        perfume.gender || '';
+
+    document.getElementById('concentration').value =
+        perfume.concentration || '';
+
+    document.getElementById('launchYear').value =
+        perfume.release_year || '';
+
+    document.getElementById('family').value =
+        perfume.fragrance_family || '';
+
+    document.getElementById('size').value =
+        variant
+            ? [
+                variant.size_ml ? `${variant.size_ml} ml` : '',
+                variant.size_oz ? `${variant.size_oz} fl oz` : ''
+              ].filter(Boolean).join(' / ')
+            : '';
+
+    document.getElementById('barcode').value =
+        variant?.upc || '';
+
+    document.getElementById('notes').value =
+        perfume.notes || '';
+
+    document.getElementById('season').value =
+        perfume.season || '';
+
+    document.getElementById('occasion').value =
+        perfume.occasion || '';
+
+    document.getElementById('description').value =
+        perfume.description || '';
+
+    document.getElementById('status').value =
+        perfume.status || 'Draft';
+
+    document.getElementById('imageFile').value = '';
+
+    publishButton.textContent = 'Save Changes';
+
+    document.getElementById('perfumeForm')
+        .scrollIntoView({ behavior: 'smooth' });
+});
 // ================================
 // PUBLISH PERFUME TO SUPABASE
 // ================================
@@ -674,7 +855,153 @@ publishButton.addEventListener('click', async () => {
     publishButton.textContent = 'Publishing...';
 
     try {
+// EDIT EXISTING PERFUME
+if (editingPerfumeId) {
 
+    // Find or create brand
+    let { data: existingBrand, error: brandSearchError } =
+        await supabaseClient
+            .from('brands')
+            .select('id')
+            .ilike('name', brand)
+            .maybeSingle();
+
+    if (brandSearchError) throw brandSearchError;
+
+    let brandId;
+
+    if (existingBrand) {
+        brandId = existingBrand.id;
+    } else {
+        const brandSlug = brand
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '');
+
+        const { data: newBrand, error: brandInsertError } =
+            await supabaseClient
+                .from('brands')
+                .insert({
+                    name: brand,
+                    slug: brandSlug
+                })
+                .select('id')
+                .single();
+
+        if (brandInsertError) throw brandInsertError;
+
+        brandId = newBrand.id;
+    }
+
+    const longevityScores = {
+        'Light': 3,
+        'Moderate': 5,
+        'Long Lasting': 7,
+        'Very Long Lasting': 9
+    };
+
+    const projectionScores = {
+        'Soft': 3,
+        'Moderate': 5,
+        'Strong': 7,
+        'Very Strong': 9
+    };
+
+    const perfumeSlug = name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+
+    // Keep old image unless a new one is selected
+    let imageUrl = existingImageUrl;
+
+    if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const fileName =
+            `${editingPerfumeId}-${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabaseClient
+            .storage
+            .from('perfume-images')
+            .upload(fileName, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabaseClient
+            .storage
+            .from('perfume-images')
+            .getPublicUrl(fileName);
+
+        imageUrl = publicUrlData.publicUrl;
+    }
+
+    // Update perfume
+    const { error: perfumeUpdateError } =
+        await supabaseClient
+            .from('perfumes')
+            .update({
+                brand_id: brandId,
+                name: name,
+                slug: perfumeSlug,
+                gender: gender,
+                concentration: concentration,
+                release_year: launchYear ? Number(launchYear) : null,
+                fragrance_family: family || null,
+                description: description || null,
+                image_url: imageUrl || null,
+                longevity: longevityScores[longevity] || null,
+                projection: projectionScores[projection] || null,
+                status: status
+            })
+            .eq('id', editingPerfumeId);
+
+    if (perfumeUpdateError) throw perfumeUpdateError;
+
+    // Read edited size
+    let sizeMl = null;
+    let sizeOz = null;
+
+    const mlMatch = size.match(/([\d.]+)\s*ml/i);
+    const ozMatch = size.match(/([\d.]+)\s*(?:fl\s*)?oz/i);
+
+    if (mlMatch) sizeMl = Number(mlMatch[1]);
+    if (ozMatch) sizeOz = Number(ozMatch[1]);
+
+    // Update existing variant
+    if (editingVariantId) {
+        const { error: variantUpdateError } =
+            await supabaseClient
+                .from('variants')
+                .update({
+                    size_ml: sizeMl,
+                    size_oz: sizeOz,
+                    upc: barcode || null,
+                    image_url: imageUrl || null
+                })
+                .eq('id', editingVariantId);
+
+        if (variantUpdateError) throw variantUpdateError;
+    }
+
+    alert('Perfume updated successfully!');
+
+    document.getElementById('perfumeForm').reset();
+
+    editingPerfumeId = null;
+    editingVariantId = null;
+    existingImageUrl = null;
+
+    editPerfumeSearch.value = '';
+    editPerfumeSelect.innerHTML =
+        '<option value="">Select a perfume</option>';
+    editPerfumeSelect.style.display = 'none';
+
+    publishButton.textContent = 'Publish Perfume';
+
+    return;
+}
         // 1. FIND OR CREATE BRAND
         const brandSlug = brand
             .toLowerCase()
