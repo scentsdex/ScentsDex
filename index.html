@@ -144,11 +144,11 @@
       if (!perfume) { profileContent.innerHTML = '<h1 tabindex="-1">Fragrance not found</h1><p class="notice">This fragrance is no longer available. Return to search to find another.</p>'; profileContent.querySelector('h1').focus(); return; }
       const [brands, variantsResult] = await Promise.all([
         brandNames([perfume.brand_id]).catch(() => new Map()),
-        db.from('variants').select('id,size_ml,size_oz,upc,sku,country').eq('perfume_id', perfume.id).order('size_ml').then(result => result, error => ({error}))
+        db.from('variants')..select('id,size_ml,size_oz,upc,sku,country,image_url').eq('perfume_id', perfume.id).order('size_ml').then(result => result, error => ({error}))
       ]);
       if (version !== profileVersion) return;
       const brand = brands.get(String(perfume.brand_id)) || 'Brand not recorded';
-      const image = safeImage(perfume.image_url);
+      const image = safeImage(perfume.image_url || variantsResult[0]?.image_url);
       const variants = variantsResult.data || [];
       const variantMarkup = variantsResult.error ? '<p class="notice">Sizes and barcodes could not be loaded. Please refresh to try again.</p>' : variants.length ? `<div class="table-wrap"><table><caption>Missing details are shown as “Not recorded”.</caption><thead><tr><th scope="col">Size</th><th scope="col">UPC / barcode</th><th scope="col">SKU</th><th scope="col">Country</th></tr></thead><tbody>${variants.map(variant => `<tr><td>${escapeHTML(variantSize(variant))}</td><td>${escapeHTML(display(variant.upc))}</td><td>${escapeHTML(display(variant.sku))}</td><td>${escapeHTML(display(variant.country))}</td></tr>`).join('')}</tbody></table></div>` : '<p class="notice">No sizes or barcodes have been added for this fragrance yet.</p>';
       profileContent.innerHTML = `<div class="profile-layout"><div class="bottle">${image ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(perfume.name || 'Fragrance')}" referrerpolicy="no-referrer">` : '<span>Product image coming soon</span>'}</div><div><p class="eyebrow">${escapeHTML(brand)}</p><h1 tabindex="-1">${escapeHTML(perfume.name || 'Unnamed fragrance')}</h1><p class="subtitle">${escapeHTML(display(perfume.concentration))}</p><p class="description">${escapeHTML(perfume.description || 'A description has not been added yet.')}</p><dl class="facts">${fact('Gender', display(perfume.gender))}${fact('Release year', display(perfume.release_year))}${fact('Fragrance family', display(perfume.fragrance_family))}${fact('Concentration', display(perfume.concentration))}${fact('Longevity', score(perfume.longevity))}${fact('Projection', score(perfume.projection))}</dl></div></div><section class="variants"><h2>Available sizes &amp; barcodes</h2>${variantMarkup}</section>`;
