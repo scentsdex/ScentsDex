@@ -10,24 +10,26 @@
   return perfumes.filter(p=>!(p.status==='Draft'&&String(p.slug||'').startsWith('photo-import-'))&&Core.clean(p.name)===Core.clean(value.name)&&(!value.concentration||!p.concentration||Core.clean(p.concentration)===Core.clean(value.concentration))).map(p=>String(p.id));
  }
 
+ function noteFields(value){const fields={};for(const key of ['top_notes','heart_notes','base_notes','main_notes'])if(Array.isArray(value[key])&&value[key].length)fields[key]=[...new Set(value[key].filter(x=>typeof x==='string'&&x.trim()&&x.length<=100).map(x=>x.trim()))].slice(0,12);return fields;}
+ function hasNotes(v){return Object.values(noteFields(v)).some(a=>a.length);}
  function officialFields(value){
   if(!value.source_url)return {};
   const fields={};const arrays=['top_notes','heart_notes','base_notes','main_notes'];
   for(const key of arrays)if(Array.isArray(value[key])&&value[key].length)fields[key]=value[key].filter(x=>typeof x==='string'&&x.length<100).slice(0,12);
   for(const key of ['source_url','source_name','source_checked_at'])if(typeof value[key]==='string')fields[key]=value[key];
   if(value.source_details&&typeof value.source_details==='object')fields.source_details=value.source_details;
-  if(value.use_official_image&&value.official_image_url){fields.image_url=value.official_image_url;fields.image_source_url=value.image_source_url||value.source_url;}
+  if(!value.image_prepared&&value.use_official_image&&value.official_image_url){fields.image_url=value.official_image_url;fields.image_source_url=value.image_source_url||value.source_url;}
   for(const key of ['concentration','fragrance_family','description'])if(value[key]&&value.source_details?.fields?.includes(key))fields[key]=value[key];
   return fields;
  }
- async function applyOfficial(db,id,value){const user=await db.auth.getUser();if(user.error||!user.data?.user)throw Error('Sign in to update the official details.');const fields=officialFields(value);if(!Object.keys(fields).length)return;check(await db.from('perfumes').update(fields).eq('id',id));}
+ async function applyOfficial(db,id,value){const user=await db.auth.getUser();if(user.error||!user.data?.user)throw Error('Sign in to update the official details.');const fields={...officialFields(value),...noteFields(value)};if(!Object.keys(fields).length)return;check(await db.from('perfumes').update(fields).eq('id',id));}
  async function publish(db,job,photo,persist=()=>{},progress=()=>{}){
   Core.validate(job.value);
   const auth=await db.auth.getUser();if(auth.error||!auth.data?.user||auth.data.user.id!==job.userId)throw Error('Sign in to your admin account again before adding this perfume.');
   if(!job.perfumeId){const own=check(await db.from('perfumes').select('id,status,image_url').eq('slug','photo-import-'+job.id).maybeSingle());if(own){job.perfumeId=own.id;persist(job);}}
   if(!job.perfumeId){progress('Checking for an existing perfume…');const matches=await duplicates(db,job.value);if(matches.length)return {existing:true,id:matches[0],ambiguous:matches.length>1};}
   const bucket=db.storage.from('perfume-images');
-  if(!job.imageUrl&&job.value.use_official_image&&job.value.official_image_url){job.imageUrl=job.value.official_image_url;persist(job);}
+  if(!job.imageUrl&&!job.value.image_prepared&&job.value.use_official_image&&job.value.official_image_url){job.imageUrl=job.value.official_image_url;persist(job);}
   if(!job.imageUrl){
    if(!photo)throw Error('Select your bottle photo again to continue this interrupted upload.');
    progress('Uploading your prepared bottle photo…');
@@ -46,7 +48,7 @@
   if(!job.perfumeId){
    progress('Creating the perfume record…');
    const v=job.value;
-   const perfume=check(await db.from('perfumes').insert({brand_id:job.brandId,name:v.name,slug:'photo-import-'+job.id,gender:v.gender||null,concentration:v.concentration||null,release_year:v.release_year||null,fragrance_family:v.fragrance_family||null,description:v.description||null,image_url:job.imageUrl,longevity:null,projection:null,...officialFields(v),status:'Draft'}).select('id').single());
+   const perfume=check(await db.from('perfumes').insert({brand_id:job.brandId,name:v.name,slug:'photo-import-'+job.id,gender:v.gender||null,concentration:v.concentration||null,release_year:v.release_year||null,fragrance_family:v.fragrance_family||null,description:v.description||null,image_url:job.imageUrl,longevity:null,projection:null,...officialFields(v),...noteFields(v),...(v.image_prepared?{image_url:job.imageUrl,source_details:v.source_details,image_source_url:v.source_details?.original_image_url?v.image_source_url||v.source_url||null:null}:{}),status:'Draft'}).select('id').single());
    job.perfumeId=perfume.id;persist(job);
   }
   if(!job.variantDone){
@@ -64,5 +66,5 @@
   job.complete=true;persist(job);
   return {existing:false,id:job.perfumeId};
  }
- return {publish,duplicates,officialFields,applyOfficial};
+ return {publish,duplicates,officialFields,applyOfficial,noteFields,hasNotes};
 });

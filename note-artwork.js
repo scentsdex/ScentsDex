@@ -15,7 +15,14 @@ else if(/birch/.test(n))art='<g transform="rotate(18 50 50)"><path d="M32 16H64V
 else if(/vanilla/.test(n))art='<g stroke="#70523c" stroke-width="7" stroke-linecap="round"><path d="M28 80Q55 56 65 19M42 85Q67 59 74 31"/></g><g transform="translate(-14 -6) scale(.75)">'+flower('#f7e6b5','#d7ae59')+'</g>';
 else if(/wood/.test(n))art=wood;
 else if(/musk/.test(n))art='<path d="M20 61Q28 25 50 40Q74 17 81 47Q84 74 58 75Q30 88 20 61Z" fill="#e8dfcd"/><path d="M29 60Q44 44 65 53M35 72Q50 54 73 62" stroke="#c3b69e" fill="none" stroke-width="3"/>';
-else art=amber;
+else if(/rose/.test(n))art=flower('#cc8492','#9d5c65');
+else if(/lavender|iris/.test(n))art='<path d="M49 83L52 23M50 62L34 48M51 53L67 38" stroke="#648052" stroke-width="3"/>'+[[49,25],[55,34],[47,40],[55,48],[34,47],[65,37]].map(([x,y])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="6" ry="9" fill="#aaa0ca"/>').join('');
+else if(/marine|aquatic|sea|ozonic|water/.test(n))art='<path d="M19 44Q34 29 50 44T81 44M19 58Q34 43 50 58T81 58M19 72Q34 57 50 72T81 72" fill="none" stroke="#7cabb8" stroke-width="6" stroke-linecap="round"/>';
+else if(/coconut/.test(n))art='<ellipse cx="48" cy="56" rx="28" ry="25" fill="#826448"/><ellipse cx="53" cy="51" rx="24" ry="21" fill="#fff9e8"/><ellipse cx="53" cy="51" rx="12" ry="10" fill="#dcd6bf"/>';
+else if(/tonka|coffee|almond/.test(n))art='<g fill="#9b7050" stroke="#6f513c" stroke-width="2"><ellipse cx="37" cy="51" rx="14" ry="23" transform="rotate(24 37 51)"/><ellipse cx="65" cy="60" rx="13" ry="22" transform="rotate(-20 65 60)"/></g><path d="M42 31Q29 51 34 72M58 42Q70 62 70 78" stroke="#c9a17c" fill="none" stroke-width="2"/>';
+else if(/amber|resin|incense|benzoin/.test(n))art=amber;
+else{const initials=String(name).replace(/[^a-zA-Z ]/g,'').trim().split(/\s+/).map(x=>x[0]||'').join('').slice(0,2).toUpperCase()||'N';art='<path d="M50 16Q22 48 28 63Q33 84 52 83Q75 82 75 61Q73 44 50 16Z" fill="#a6b696"/><text x="50" y="66" text-anchor="middle" font-family="sans-serif" font-size="19" fill="#344b38">'+initials+'</text>';}
 return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="bg"><stop stop-color="#f9f8ef"/><stop offset="1" stop-color="#e7e8d9"/></radialGradient></defs><circle cx="50" cy="50" r="50" fill="url(#bg)"/><ellipse cx="50" cy="83" rx="27" ry="4" fill="#344c3220"/>'+art+'</svg>');}
-root.NoteArtwork={image:artwork};if(typeof module==='object')module.exports=root.NoteArtwork;
+function canonical(name){const s=String(name||'').trim(),n=s.toLowerCase();for(const [test,label] of [[/bergamot/,'Bergamot'],[/jasmine/,'Jasmine'],[/sandalwood/,'Sandalwood'],[/\bmint\b/,'Mint'],[/patchouli/,'Patchouli'],[/rose(?!mary)/,'Rose'],[/vanilla/,'Vanilla'],[/vetiver/,'Vetiver'],[/lavender/,'Lavender'],[/pineapple/,'Pineapple'],[/blackcurrant/,'Blackcurrant'],[/mandarin/,'Mandarin'],[/lemon/,'Lemon'],[/musk/,'Musk'],[/orange blossom/,'Orange blossom']])if(test.test(n))return label;return s;}
+root.NoteArtwork={image:artwork,canonical};if(typeof module==='object')module.exports=root.NoteArtwork;
 })(typeof window==='undefined'?globalThis:window);
