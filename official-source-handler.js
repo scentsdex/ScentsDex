@@ -1,0 +1,27 @@
+// This file is appended to official-source-core.js for Supabase deployment.
+const Core=globalThis.OfficialSourceCore;
+const cache=new Map(),usage=new Map();
+const allowedOrigins=['https://scentsdex.github.io','https://supabase.com'];
+const headers=origin=>({'Content-Type':'application/json','Access-Control-Allow-Origin':allowedOrigins.includes(origin)?origin:allowedOrigins[0],'Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type','Access-Control-Allow-Methods':'POST, OPTIONS','Vary':'Origin'});
+async function fetchOfficial(url,brand){let current=Core.sourceUrl(url,brand);for(let i=0;i<4;i++){const response=await fetch(current,{redirect:'manual',signal:AbortSignal.timeout(14000),headers:{'Accept':'text/html,application/ld+json,application/json','User-Agent':'ScentsDex/1.0 (+https://scentsdex.github.io/ScentsDex/)'}});if([301,302,303,307,308].includes(response.status)){const location=response.headers.get('location');await response.body?.cancel();if(!location)throw Error('Official page redirect has no destination.');current=Core.sourceUrl(new URL(location,current).href,brand);continue;}if(!response.ok){await response.body?.cancel();throw Error('The brand website is not allowing automated access right now. Paste another official product URL or keep the photo.');}if(!/text\/html|application\/json/i.test(response.headers.get('content-type')||'')){await response.body?.cancel();throw Error('The source must be an official HTML product page.');}if(Number(response.headers.get('content-length'))>2200000){await response.body?.cancel();throw Error('The official page is too large to read.');}const reader=response.body.getReader();let total=0;const chunks=[];while(true){const {done,value}=await reader.read();if(done)break;total+=value.length;if(total>2200000){await reader.cancel();throw Error('The official page is too large to read.');}chunks.push(value);}const joined=new Uint8Array(total);let at=0;for(const chunk of chunks){joined.set(chunk,at);at+=chunk.length;}return {url:current,html:new TextDecoder().decode(joined)};}throw Error('The official page redirected too many times.');}
+Deno.serve(async request=>{
+ const origin=request.headers.get('origin')||'';const respond=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:headers(origin)});
+ if(request.method==='OPTIONS')return new Response(null,{status:204,headers:headers(origin)});
+ if(request.method!=='POST')return respond({error:'Use POST.'},405);
+ if(origin&&!allowedOrigins.includes(origin))return respond({error:'This origin is not allowed.'},403);
+ try{
+  const authorization=request.headers.get('Authorization')||'';if(!authorization.startsWith('Bearer '))return respond({error:'Sign into your ScentsDex admin account first.'},401);
+  const serverKey=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');let actor='';
+  if(serverKey&&authorization==='Bearer '+serverKey)actor='service-role';else{const auth=await fetch(Deno.env.get('SUPABASE_URL')+'/auth/v1/user',{headers:{Authorization:authorization,apikey:Deno.env.get('SUPABASE_ANON_KEY')},signal:AbortSignal.timeout(8000)});if(!auth.ok)return respond({error:'Your admin session expired. Sign in again.'},401);const user=await auth.json();if(!user.id)return respond({error:'Sign in first.'},401);actor=user.id;}
+  const entry=usage.get(actor)||{time:Date.now(),count:0};if(Date.now()-entry.time>3600000){entry.time=Date.now();entry.count=0;}if(++entry.count>40)return respond({error:'Too many lookups. Please try again later.'},429);usage.set(actor,entry);if(usage.size>300)usage.delete(usage.keys().next().value);
+  const raw=await request.text();if(raw.length>8000)return respond({error:'The request is too large.'},413);let input;try{input=JSON.parse(raw);}catch{return respond({error:'Invalid JSON request.'},400);}
+  if(typeof input.brand!=='string'||typeof input.name!=='string'||input.brand.length>160||input.name.length>200||!input.brand.trim()||!input.name.trim())return respond({error:'Confirm the brand and exact perfume name first.'},400);
+  const identity={brand:input.brand.trim(),name:input.name.trim(),concentration:String(input.concentration||'').slice(0,80)};
+  const brand=Core.brandFor(identity.brand);if(!brand)return respond({matched:false,needs_source_url:true,message:'Official sourcing for this brand is not supported yet. Your photo and confirmed details can still be published.'});
+  let urls=input.source_url?[Core.sourceUrl(String(input.source_url),brand)]:Core.candidates(identity);
+  if(!urls.length)return respond({matched:false,needs_source_url:true,message:'Paste the exact official product-page URL for '+brand.brand+'.'});
+  const key=JSON.stringify([identity,urls]);const saved=cache.get(key);if(saved&&Date.now()-saved.time<86400000)return respond({...saved.result,cached:true});let lastError;
+  for(const url of urls.slice(0,3)){try{const page=await fetchOfficial(url,identity.brand);const result=Core.parseProduct(page.html,page.url,identity);cache.set(key,{time:Date.now(),result});if(cache.size>100)cache.delete(cache.keys().next().value);return respond(result);}catch(error){lastError=error;}}
+  return respond({matched:false,needs_source_url:true,message:lastError?.message||'No exact official product match was found. Paste the official product-page URL.'});
+ }catch(error){return respond({matched:false,needs_source_url:true,message:error.message||'Official lookup is unavailable. You can keep your photo and enter the details manually.'});}
+});
