@@ -11,5 +11,5 @@ form.addEventListener('submit',event=>{event.preventDefault();const data=core.de
  $('resultMessage').textContent=data.message;$('resultScope').textContent=data.scope||'';$('resultScope').hidden=!data.scope;
  $('resultSource').hidden=!estimated;result.hidden=false;$('resultHeading').focus();
 });
-$('tryExample').addEventListener('click',()=>{brand.value='Yves Saint Laurent';reset();code.value='38Y100';form.requestSubmit();});reset();
+$('tryExample').addEventListener('click',()=>{brand.value='Yves Saint Laurent';reset();code.value='38A100';form.requestSubmit();});reset();
 })();

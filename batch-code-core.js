@@ -17,10 +17,10 @@ function decode(brandInput,codeInput,now=new Date()){
  if(groups.loreal.includes(brand)){
   format='L’Oréal-style six- or seven-character code';
   if(!/^\d{2}[A-Z][1-9OND][A-Z0-9]{2,3}$/.test(code))return {...base,message:'This code does not match the supported format for '+brand+'. Check every character; older bottles may use another format.'};
-  year=({T:2020,U:2021,W:2022,X:2023,Y:2024,Z:2025})[code[2]];
-  if(!year)return {...base,message:'This year letter is outside our checked 2020–2025 range. We cannot estimate a date for this code.'};
+  year=({T:2020,U:2021,W:2022,X:2023,Y:2024,Z:2025,A:2026})[code[2]];
+  if(!year)return {...base,message:'This year letter is outside our checked 2020–2026 range. We cannot estimate a date for this code.'};
   month=Number(code[3])||({O:10,N:11,D:12})[code[3]];
-  scope='Checked year-letter range: 2020–2025. Older licenses and other factories can use different codes.';
+  scope=year===2026?'The A = 2026 year mapping is inferred from the public letter cycle. Older A codes can repeat; packaging is needed to distinguish them.':'Supported year-letter range: 2020–2026. Older licenses and other factories can use different codes.';
  }else if(groups.lvmh.includes(brand)){
   format='Modern four-character Dior / Guerlain convention';
   if(!/^\d[ABCDEFGHJKLM][A-Z0-9]{2}$/.test(code))return {...base,message:'This code does not match the supported modern format for '+brand+'. Historical formats are not covered.'};
