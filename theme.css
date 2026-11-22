@@ -5,9 +5,9 @@ html[data-theme=dark]{--paper:#17121c;--ink:#f1e6f2;--muted:#bbaabe;--line:#4033
 html[data-theme=dark] body,html[data-theme=dark] body:has(#discoveryTitle){background:var(--paper);color:var(--ink)}
 html[data-theme=dark] header{background:var(--paper)}html[data-theme=dark] .logo span{color:#c7a3dc}
 html[data-theme=dark] .logo .aromaRibbon{filter:brightness(1.6) sepia(.4) hue-rotate(205deg)}
-html[data-theme=dark] .discoveryHero{background:linear-gradient(115deg,#281b2b,#292035 60%,#3f304d)}
+html[data-theme=dark] .discoveryHero{background:#292035}
 html[data-theme=dark] .discoveryCopy{background:transparent}html[data-theme=dark] .discoveryCopy>p:not(.sectionLabel){color:#d5c1d4}
-html[data-theme=dark] .discoveryVisual:after{background:linear-gradient(90deg,#292035,#29203500 24%)}
+html[data-theme=dark] .discoveryVisual{background:transparent}html[data-theme=dark] .discoveryVisual:after{background:none}html[data-theme=dark] .discoveryVisual img{-webkit-mask-image:linear-gradient(90deg,transparent 0%,transparent 2%,#0000000f 8%,#00000038 16%,#00000080 25%,#000000c7 34%,#000000f0 42%,#000 50%);mask-image:linear-gradient(90deg,transparent 0%,transparent 2%,#0000000f 8%,#00000038 16%,#00000080 25%,#000000c7 34%,#000000f0 42%,#000 50%)}
 html[data-theme=dark] .shelfCard{background:linear-gradient(150deg,#33243b,#292036);border-color:#49374e}
 html[data-theme=dark] .shelfCard[data-tone="1"]{background:linear-gradient(150deg,#203844,#1c2b39)}
 html[data-theme=dark] .shelfCard[data-tone="2"]{background:linear-gradient(150deg,#302e42,#252334)}
@@ -38,4 +38,4 @@ html[data-theme=dark] .factsEmpty a{background:#315fb3;color:white}
 html[data-theme=dark] .imageEditPanel,html[data-theme=dark] .officialPanel,html[data-theme=dark] .guide,html[data-theme=dark] .missing{background:#2d2335!important;color:var(--ink)}
 html[data-theme=dark] .imageError{background:#29212f;color:var(--ink)}
 @media(max-width:1100px){header:has(.themeToggle){height:auto;flex-wrap:wrap;row-gap:14px;padding-top:18px;padding-bottom:14px}}
-@media(max-width:650px){header .themeToggle{order:1;margin-left:auto}header .search{order:2;flex-basis:100%;margin-left:0}header .search input{width:100%;max-width:100%}header nav{order:3}html[data-theme=dark] .discoveryCopy{background:linear-gradient(120deg,#281b2b,#292035)}html[data-theme=dark] .discoveryVisual:after{background:linear-gradient(180deg,#292035,#29203500 20%)}}
+@media(max-width:650px){header .themeToggle{order:1;margin-left:auto}header .search{order:2;flex-basis:100%;margin-left:0}header .search input{width:100%;max-width:100%}header nav{order:3}html[data-theme=dark] .discoveryCopy{background:transparent}html[data-theme=dark] .discoveryVisual img{-webkit-mask-image:linear-gradient(180deg,transparent,#00000066 8%,#000000e6 18%,#000 26%);mask-image:linear-gradient(180deg,transparent,#00000066 8%,#000000e6 18%,#000 26%)}}
