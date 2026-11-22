@@ -22,7 +22,18 @@
   for(const key of ['concentration','fragrance_family','description'])if(value[key]&&value.source_details?.fields?.includes(key))fields[key]=value[key];
   return fields;
  }
- async function applyOfficial(db,id,value){const user=await db.auth.getUser();if(user.error||!user.data?.user)throw Error('Sign in to update the official details.');const fields={...officialFields(value),...noteFields(value)};if(!Object.keys(fields).length)return;check(await db.from('perfumes').update(fields).eq('id',id));}
+ async function applyOfficial(db,id,value){const user=await db.auth.getUser();if(user.error||!user.data?.user)throw Error('Sign in to update the official details.');const fields={...officialFields(value),...noteFields(value)};if(!Object.keys(fields).length)return;check(await db.from('perfumes').update(fields).eq('id',id));await saveVariants(db,id,value);}
+
+ async function saveVariants(db,id,value,imageUrl){
+  const sizes=(Array.isArray(value.variants)?value.variants:[]).filter(v=>Number.isFinite(v.size_ml)&&v.size_ml>0&&v.size_ml<=10000).slice(0,20).map(v=>({size_ml:v.size_ml,size_oz:null,barcode:''}));
+  if(value.barcode||value.size_ml||value.size_oz){const captured={size_ml:value.size_ml||null,size_oz:value.size_oz||null,barcode:value.barcode||''};const at=sizes.findIndex(v=>captured.size_ml&&v.size_ml===captured.size_ml);if(at>=0)sizes[at]=captured;else sizes.unshift(captured);}
+  if(!sizes.length)return;
+  const existing=check(await db.from('variants').select('id,upc,size_ml,size_oz').eq('perfume_id',id))||[];
+  for(const v of sizes){const found=existing.find(x=>(v.barcode&&Core.equivalents(x.upc,v.barcode))||((v.size_ml?Number(x.size_ml)===Number(v.size_ml):!x.size_ml&&Number(x.size_oz||0)===Number(v.size_oz||0))&&(!v.barcode||!x.upc||Core.equivalents(x.upc,v.barcode))));
+   if(found){if(v.barcode&&!found.upc){check(await db.from('variants').update({upc:v.barcode,...(v.size_oz?{size_oz:v.size_oz}:{})}).eq('id',found.id));found.upc=v.barcode;}continue;}
+   const row={perfume_id:id,size_ml:v.size_ml,size_oz:v.size_oz,upc:v.barcode||null,image_url:imageUrl||null};check(await db.from('variants').insert(row));existing.push({...row});
+  }
+ }
  async function publish(db,job,photo,persist=()=>{},progress=()=>{}){
   Core.validate(job.value);
   const auth=await db.auth.getUser();if(auth.error||!auth.data?.user||auth.data.user.id!==job.userId)throw Error('Sign in to your admin account again before adding this perfume.');
@@ -54,11 +65,7 @@
   if(!job.variantDone){
    progress('Saving size and barcode…');
    const v=job.value;
-   if(v.barcode||v.size_ml||v.size_oz){
-    const all=check(await db.from('variants').select('id,upc,size_ml,size_oz').eq('perfume_id',job.perfumeId))||[];
-    const found=all.find(x=>(x.upc||'')===(v.barcode||'')&&Number(x.size_ml||0)===Number(v.size_ml||0)&&Number(x.size_oz||0)===Number(v.size_oz||0));
-    if(!found)check(await db.from('variants').insert({perfume_id:job.perfumeId,size_ml:v.size_ml||null,size_oz:v.size_oz||null,upc:v.barcode||null,image_url:job.imageUrl}));
-   }
+   await saveVariants(db,job.perfumeId,v,job.imageUrl);
    job.variantDone=true;persist(job);
   }
   progress('Publishing to ScentsDex…');
@@ -66,5 +73,5 @@
   job.complete=true;persist(job);
   return {existing:false,id:job.perfumeId};
  }
- return {publish,duplicates,officialFields,applyOfficial,noteFields,hasNotes};
+ return {publish,duplicates,officialFields,applyOfficial,noteFields,hasNotes,saveVariants};
 });

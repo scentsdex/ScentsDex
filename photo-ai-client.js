@@ -1,0 +1,5 @@
+(function(){'use strict';
+ async function imagePart(blob){const image=await createImageBitmap(blob);try{const scale=Math.min(1,1200/Math.max(image.width,image.height)),canvas=document.createElement('canvas');canvas.width=Math.round(image.width*scale);canvas.height=Math.round(image.height*scale);canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);const url=canvas.toDataURL('image/jpeg',.85);canvas.width=canvas.height=0;return {mimeType:'image/jpeg',data:url.split(',')[1]};}finally{image.close();}}
+ async function identify(db,photos){const images=await Promise.all(photos.slice(0,6).map(p=>imagePart(p.ocrBlob)));const {data,error}=await db.functions.invoke('perfume-photo-ai',{body:{images}});if(error){let message;try{const detail=await error.context?.json();message=detail?.error;}catch{}throw Error(message||'AI recognition is unavailable. Trying packaging text instead.');}if(!data?.matched||!data.identity?.brand||!data.identity?.name)throw Error(data?.identity?.reason||'AI could not confidently identify this perfume. Trying packaging text instead.');return data.identity;}
+ window.PhotoAI={identify};
+})();
